@@ -19,14 +19,15 @@ def feed_pet():
 
 
 def pet_care(pet):
-    print(f"Found {pet}. What should I do now?\n1. Pet {pet} \n2. Feed {pet} \n3. Main menu")
-    choice = input("Choose an alternative 1-3: ")
-    if choice == "1":
-        pet_pet()
-    elif choice == "2":
-        feed_pet()
-    elif choice == "3":
-        break
+    while True:
+        print(f"Found {pet}. What should I do now?\n1. Pet {pet} \n2. Feed {pet} \n3. Main menu")
+        choice = input("Choose an alternative 1-3: ")
+        if choice == "1":
+            pet_pet()
+        elif choice == "2":
+            feed_pet()
+        elif choice == "3":
+            break
 
 def main():
     while True:
