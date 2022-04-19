@@ -1,1 +1,5 @@
-
+('Aflurr', 223, 3, 22, {'Duraasdrp': True, 'Huddrrp': False, 'Maauw': False})
+('Därp', 756, 3, 4, {'Durpusöre': False})
+('Florpus', 2022, 3, 22, {'Durr': False, 'Hurr': True, 'Mau': False})
+('Möp', 2022, 4, 18, {'AK': False, 'Tält': False})
+('Florpurr', 2023, 3, 22, {'Cup': False, 'Durrp': True, 'Hurrp': False, 'Mäuw': False})
