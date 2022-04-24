@@ -1,5 +1,5 @@
 # Project, DD100N, Linnéa Sandblom, 2022-04-xx
-# Makes and views packing lists.
+# Makes, views and edits packing lists.
 import ast
 from typing import List, Tuple, Dict
 import datetime
@@ -20,8 +20,8 @@ class PackList:
 
     def add_item(self, name, packed=False):
         """
-        add item to packlist
-        :param str name: name of item to be added to packlist
+        add item to PackList
+        :param str name: name of item to be added to PackList
         :param bool packed: true if item is packed when added, else false
         """
         name = name[0].upper() + name[1:]
@@ -44,26 +44,37 @@ class PackList:
 
     def change_date(self, new_date):
         """
-        change date of travel for packlist
+        change date of travel for PackList
         :param str new_date: new date of travel
         """
         self.date = new_date
 
     def change_name(self, new_name):
         """
-        change name of packlist
-        :param str new_name: new name of packlist
+        change name of PackList
+        :param str new_name: new name of PackList
         """
         self.name = new_name
 
     def __repr__(self):
+        """
+        create string from PackList object
+        :return: string of PackList object
+        """
         return str((self.name, self.date.year, self.date.month, self.date.day, self.items))
 
     def print_list(self):
+        """
+        print list date, name and items
+        """
         print(f"{self.date} - {self.name}")
         self.print_list_items()
 
     def print_list_items(self, only_unpacked=False):
+        """
+        print list items, enumerated
+        :param only_unpacked: if only unpacked items True, otherwise false
+        """
         for index, (item, packed) in enumerate(self.items.items()):
             if packed and not only_unpacked:
                 print(f"{index}: X {item}")
@@ -72,6 +83,10 @@ class PackList:
 
 
 def new_packlist():
+    """
+    create new packlist
+    :return: packlist created
+    """
     name = input("Name of packlist: ")
     name = name[0].upper() + name[1:]
     print("Enter date of travel: ")
@@ -136,6 +151,10 @@ def search_lists(lists):
 
 
 def list_menu(chosen_list):
+    """
+    menu for options on chosen_list
+    :param chosen_list: list to be handled in function
+    """
     chosen_list.print_list()
     while True:
         choice = input(f"\nPlease choose one of the following options for {chosen_list.name}: \n\n"
@@ -171,6 +190,7 @@ def read_file(file=SAVE_FILE):
     """
     reads packlists from textfile
     :param str file: name of textfile
+    :return list packlists made from textfile data
     """
     packlists = []
     try:
@@ -200,6 +220,10 @@ def quit_write_to_file(lists, file=SAVE_FILE):
 
 
 def ask_for_date():
+    """
+    take date input from user as a datetime.date object
+    :return: date as datetime.date object if there is a date input, otherwise None
+    """
     while True:
         try:
             year_str = input("Enter year (1-9999): ")
@@ -215,6 +239,11 @@ def ask_for_date():
             print("Non-valid date, try again!")
 
 def ask_for_int(message):
+     """
+    check that input is int
+     :param str message: message for input
+     :return: value: int value input
+     """
      while True:
         try:
             value = int(input(message))
@@ -225,6 +254,11 @@ def ask_for_int(message):
 
 
 def sort_lists(lists):
+    """
+    sort lists by date
+    :param list lists: list of lists to be sorted
+    :return: lists: sorted by date
+    """
     for packlist in lists:
         packlist.items = dict(sorted(packlist.items.items()))
     return sorted(lists, key=lambda packlist: packlist.date)
@@ -239,7 +273,7 @@ def main():
     print(f"Welcome to Packlist program!")
     while True:
         packlists = sort_lists(packlists)
-        choice = input("\nPlease choose one of the following options: \n\n1. New packlist\n2. Show coming packlists\n3. Search packlist\n4. Quit\n")
+        choice = input("\nPlease choose one of the following options: \n\n1. New packlist\n2. Show coming packlists\n3. Search and edit packlist\n4. Quit\n")
         if choice == "1":
             packlists.append(new_packlist())
             packlists = sort_lists(packlists)
