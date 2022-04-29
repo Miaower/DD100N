@@ -35,7 +35,7 @@ def enter_results(competitors):
     """
     new_name = input("Name of competitor: ")
     while not check_name(competitors, new_name):
-        new_name = input("This name is already taken. Enter new name of competitor: ")
+        new_name = input("This name is already taken or invalid. Enter new name of competitor: ")
 
     new_result = input(f"How many points did {new_name} get? ")
     while not check_result(new_result):
@@ -53,7 +53,7 @@ def check_name(competitors, new_name):
     :return: False if name is already taken, else True
     """
     for element in competitors:
-        if element[0] == new_name:
+        if element[0] == new_name or not element[0]:
             return False
     return True
 
