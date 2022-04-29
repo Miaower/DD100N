@@ -47,7 +47,7 @@ def enter_results(competitors):
 
 def check_name(competitors, new_name):
     """
-    Checks if name is taken
+    Checks if name is taken or invalid
     :param competitors: list containing competitors and their scores
     :param new_name: name to check
     :return: False if name is already taken, else True
