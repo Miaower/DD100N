@@ -52,8 +52,10 @@ def check_name(competitors, new_name):
     :param new_name: name to check
     :return: False if name is already taken, else True
     """
+    if not new_name.strip():
+        return False
     for element in competitors:
-        if element[0] == new_name or not new_name.strip():
+        if element[0] == new_name:
             return False
     return True
 
