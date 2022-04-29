@@ -33,7 +33,7 @@ def enter_results(competitors):
     :param competitors: list containing competitors and their scores
     :return: competitors: list containing competitors and their scores, with added player and score
     """
-    new_name = input("Name of competitor: ")
+    new_name = input("Name of competitor: ").strip()
     while not check_name(competitors, new_name):
         new_name = input("This name is already taken or invalid. Enter new name of competitor: ")
 
@@ -52,7 +52,7 @@ def check_name(competitors, new_name):
     :param new_name: name to check
     :return: False if name is already taken, else True
     """
-    if not new_name.strip():
+    if not new_name:
         return False
     for element in competitors:
         if element[0] == new_name:
