@@ -53,7 +53,7 @@ def check_name(competitors, new_name):
     :return: False if name is already taken, else True
     """
     for element in competitors:
-        if element[0] == new_name or not element[0]:
+        if element[0] == new_name or not new_name.strip():
             return False
     return True
 
