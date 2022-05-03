@@ -1,4 +1,4 @@
-# Project, DD100N, Linnéa Sandblom, 2022-04-xx
+# Project, DD100N, Linnéa Sandblom, 2022-05-xx
 # Makes, views and edits packing lists.
 import ast
 from typing import List, Tuple, Dict
@@ -238,13 +238,14 @@ def ask_for_date():
         except ValueError:
             print("Non-valid date, try again!")
 
+
 def ask_for_int(message):
-     """
+    """
     check that input is int
-     :param str message: message for input
-     :return: value: int value input
-     """
-     while True:
+    :param str message: message for input
+    :return: value: int value input
+    """
+    while True:
         try:
             value = int(input(message))
         except ValueError:
