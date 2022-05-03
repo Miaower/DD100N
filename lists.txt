@@ -1,5 +1,5 @@
 ('Aflurr', 223, 3, 22, {'Duraasdrp': True, 'Huddrrp': False, 'Maauw': False})
 ('Mordor', 756, 3, 4, {'Ring': False, 'Bow': False, 'Sword': False, 'Axe': False})
 ('Möp', 2022, 4, 18, {'AK': False, 'Tält': False})
-('Tyskland', 2023, 3, 22, {'Dirndl': False, 'Lederhosen': True, 'Ordbok': False})
-('Cat Land', 2025, 6, 20, {'Catnip': True, 'Band aids': True, 'MEOW': False})
+('Tyskland', 2023, 3, 22, {'Dirndl': True, 'Lederhosen': True, 'Ordbok': False})
+('Cat Land', 2025, 6, 20, {'Catnip': False, 'MEOW': True})

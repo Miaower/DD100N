@@ -26,9 +26,7 @@ class App(Tk):
         self.quit_btn = Button(text="Quit", command=lambda: self.quit_save()).grid(row=7, column=3)
 
         # TODO: new list, change name and change date
-        # TODO: choosable lists + show name, date and items
-        # TODO: add, remove and toggle
-        # TODO: show unpacked
+        # TODO: add function
         # TODO: change global variable stuff(?)
         # TODO: remove stuff that isn't used
         # TODO: comment everything
@@ -76,9 +74,6 @@ class ListsView:
         self.packlists_listbox_var = StringVar()
         self.update_packlist_display(self.root.packlists_filtered)
 
-
-        # TODO: Current index matches packlists_filtered. Use that!!
-
         self.welcome_label = Label(text="Welcome to Packlist program!\n", width=40).grid(row=0, column=0, columnspan=4)
         self.search_date_label = Label(text="Search from date:", anchor=W, width=36).grid(row=1, column=0, columnspan=4)
         self.search_date_entry = Entry(textvariable=search_date_entry_var, width=25).grid(row=2, column=0, columnspan=2)
@@ -88,24 +83,15 @@ class ListsView:
         self.go_search_datename = Button(text="Search", command=lambda: self.root.search_lists(self.root.packlists, search_datename_entry_var.get())).grid(row=4, column=2)
         self.space = Label(text="", width=40).grid(row=5, column=0, columnspan=4)
 
-        self.packlist_listbox = Listbox(listvariable=self.packlists_listbox_var, width=40).grid(row=6, column=0, columnspan=4)
+        self.packlist_listbox = Listbox(listvariable=self.packlists_listbox_var, width=40)
+        self.packlist_listbox.grid(row=6, column=0, columnspan=4)
         self.go_search_date = Button(text="Select list", command=lambda: self.selected_list()).grid(row=7, column=0)
         self.new_list_btn = Button(text="New list", command=lambda: self.edit_create()).grid(row=7, column=1)
         self.edit_btn = Button(text="Edit", command=lambda: self.edit_create()).grid(row=7, column=2)
 
     def selected_list(self):
-
-        for i in self.root.packlist_listbox.curselection():
-            self.update_itemlist_display(self.packlist_listbox.get(i))
-
-    def update_itemlist_display(self, index):  # TODO: Kalla på denna funktion och hitta listan med items. Visa i ItemListsView
-        self.root.packlists[index].items
-        if not self.root.packlists[index].items:
-            self.packlists_items_box_var.set(["No items found!"])
-            return
-        items_display = [f"{item.key} - {item.value}" for item in self.root.packlists[index].items]  # TODO: Make packed and name work
-        self.selected_packlist = self.root.packlists[index].items
-        self.packlists_items_box_var.set(items_display)
+        index = self.packlist_listbox.curselection()[0]
+        self.root.itemlists.update_itemlist_display(self.root.packlists_filtered[index])
 
     def edit_create(self):
         InputBox(self.root)
@@ -121,15 +107,56 @@ class ListsView:
 class ItemListsView:
 
     def __init__(self, root):
+        self.root = root
+        self.selected_packlist = None
         self.packlists_items_box_var = StringVar()
-        self.selected_packlist = StringVar()
+        self.namedate_var = StringVar("")
+        self.show_only_unpacked = BooleanVar()
 
-        self.name_date = Label(text="Textvariable w name&date goes here").grid(row=4, column=4, columnspan=3)
-        self.toggle_btn = Checkbutton(text="Show only unpacked items", command=lambda: self.dostuff()).grid(row=5, column=4, columnspan=3)
-        self.packlist_items_box = Listbox(listvariable=self.packlists_items_box_var, width=40).grid(row=6, column=4, columnspan=3)
-        self.add_item = Button(text="+", command=lambda: self.dostuff()).grid(row=7, column=4)
-        self.remove_item = Button(text="-", command=lambda: self.dostuff()).grid(row=7, column=5)
-        self.toggle_item = Button(text="Set packed", command=lambda: self.dostuff()).grid(row=7, column=6)
+        self.name_date = Label(textvariable=self.namedate_var).grid(row=4, column=4, columnspan=3)
+        self.toggle_btn = Checkbutton(text="Show only unpacked items", command=lambda: self.update_itemlist_display(self.selected_packlist), onvalue=True, offvalue=False, variable=self.show_only_unpacked).grid(row=5, column=4, columnspan=3)
+        self.packlist_items_box = Listbox(listvariable=self.packlists_items_box_var, width=40)
+        self.packlist_items_box.grid(row=6, column=4, columnspan=3)
+        self.add_item = Button(text="+", command=lambda: self.add_item_func())
+        self.add_item.grid(row=7, column=4)
+        self.remove_item = Button(text="-", command=lambda: self.remove_item_func())
+        self.remove_item.grid(row=7, column=5)
+        self.toggle_item = Button(text="Set packed", command=lambda: self.toggle_item_func())
+        self.toggle_item.grid(row=7, column=6)
+
+    def update_itemlist_display(self, packlist):
+        if not packlist:
+            return
+        elif not packlist.items:
+            self.packlists_items_box_var.set(["No items found!"])
+            return
+        if self.show_only_unpacked.get():
+            items_display = [f"{'    '}  {key}" for key, value in packlist.items.items() if not value]
+        else:
+            items_display = [f"{' X' if value else '    '}  {key}" for key, value in packlist.items.items()]
+        self.packlists_items_box_var.set(items_display)
+        namedate_display = (f"{packlist.name} - {packlist.date}")
+        self.namedate_var.set(namedate_display)
+        self.selected_packlist = packlist
+
+    def add_item_func(self):
+        pass
+
+    def remove_item_func(self):
+        keylist = []
+        for i in self.selected_packlist.items.keys():
+            keylist.append(i)
+        self.selected_packlist.items.pop(keylist[self.packlist_items_box.curselection()[0]])
+        self.update_itemlist_display(self.selected_packlist)
+
+    def toggle_item_func(self):
+        items_key = [key for key, value in self.selected_packlist.items.items()]
+        items_value = [value for key, value in self.selected_packlist.items.items()]
+        if items_value[self.packlist_items_box.curselection()[0]]:
+            self.selected_packlist.items[items_key[self.packlist_items_box.curselection()[0]]] = False
+        else:
+            self.selected_packlist.items[items_key[self.packlist_items_box.curselection()[0]]] = True
+        self.update_itemlist_display(self.selected_packlist)
 
 
 class InputBox:
