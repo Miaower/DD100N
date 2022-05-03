@@ -23,8 +23,7 @@ class App(Tk):
         self.lists = ListsView(self)
         self.itemlists = ItemListsView(self)
 
-        self.quit_btn = Button(text="Quit", command=lambda: self.quit_save())
-        self.quit_btn.grid(row=7, column=2)
+        self.quit_btn = Button(text="Quit", command=lambda: self.quit_save()).grid(row=7, column=3)
 
         # TODO: new list, change name and change date
         # TODO: choosable lists + show name, date and items
@@ -46,7 +45,7 @@ class App(Tk):
         search packlist
         :param list lists: list of packlists
         """
-        #self.packlists_filtered = self.packlists
+        #self.packlists_filtered = self.packlists   TODO: Vafan gör denna raden här?
         searchlist = []
         if show_after:
             if not search:
@@ -77,20 +76,36 @@ class ListsView:
         self.packlists_listbox_var = StringVar()
         self.update_packlist_display(self.root.packlists_filtered)
 
+
         # TODO: Current index matches packlists_filtered. Use that!!
 
-        self.welcome_label = Label(text="Welcome to Packlist program!\n", width=40).grid(row=0, column=0, columnspan=3)
-        self.search_date_label = Label(text="Search from date:", anchor=W, width=36).grid(row=1, column=0, columnspan=3)
+        self.welcome_label = Label(text="Welcome to Packlist program!\n", width=40).grid(row=0, column=0, columnspan=4)
+        self.search_date_label = Label(text="Search from date:", anchor=W, width=36).grid(row=1, column=0, columnspan=4)
         self.search_date_entry = Entry(textvariable=search_date_entry_var, width=25).grid(row=2, column=0, columnspan=2)
         self.go_search_date = Button(text="Search", command=lambda: self.root.search_lists(self.root.packlists, search_date_entry_var.get(), show_after=True)).grid(row=2, column=2)
-        self.search_datename_label = Label(text="Search by name or date:", anchor=W, width=36).grid(row=3, column=0, columnspan=3)
+        self.search_datename_label = Label(text="Search by name or date:", anchor=W, width=36).grid(row=3, column=0, columnspan=4)
         self.search_datename_entry = Entry(text=search_datename_entry_var, width=25).grid(row=4, column=0, columnspan=2)
         self.go_search_datename = Button(text="Search", command=lambda: self.root.search_lists(self.root.packlists, search_datename_entry_var.get())).grid(row=4, column=2)
-        self.space = Label(text="", width=40).grid(row=5, column=0, columnspan=3)
+        self.space = Label(text="", width=40).grid(row=5, column=0, columnspan=4)
 
-        self.packlist_listbox = Listbox(listvariable=self.packlists_listbox_var, width=40).grid(row=6, column=0, columnspan=3)
-        self.new_list_btn = Button(text="New list", command=lambda: self.edit_create()).grid(row=7, column=0)
-        self.edit_btn = Button(text="Edit", command=lambda: self.edit_create()).grid(row=7, column=1)
+        self.packlist_listbox = Listbox(listvariable=self.packlists_listbox_var, width=40).grid(row=6, column=0, columnspan=4)
+        self.go_search_date = Button(text="Select list", command=lambda: self.selected_list()).grid(row=7, column=0)
+        self.new_list_btn = Button(text="New list", command=lambda: self.edit_create()).grid(row=7, column=1)
+        self.edit_btn = Button(text="Edit", command=lambda: self.edit_create()).grid(row=7, column=2)
+
+    def selected_list(self):
+
+        for i in self.root.packlist_listbox.curselection():
+            self.update_itemlist_display(self.packlist_listbox.get(i))
+
+    def update_itemlist_display(self, index):  # TODO: Kalla på denna funktion och hitta listan med items. Visa i ItemListsView
+        self.root.packlists[index].items
+        if not self.root.packlists[index].items:
+            self.packlists_items_box_var.set(["No items found!"])
+            return
+        items_display = [f"{item.key} - {item.value}" for item in self.root.packlists[index].items]  # TODO: Make packed and name work
+        self.selected_packlist = self.root.packlists[index].items
+        self.packlists_items_box_var.set(items_display)
 
     def edit_create(self):
         InputBox(self.root)
@@ -106,12 +121,15 @@ class ListsView:
 class ItemListsView:
 
     def __init__(self, root):
-        self.name_date = Label(text="Textvariable w name&date goes here").grid(row=4, column=3, columnspan=3)
-        self.toggle_btn = Checkbutton(text="Show only unpacked items", command=lambda: self.dostuff()).grid(row=5, column=3, columnspan=3)
-        self.packlist_items_box = Listbox(width=40).grid(row=6, column=3, columnspan=3)
-        self.add_item = Button(text="+", command=lambda: self.dostuff()).grid(row=7, column=3)
-        self.remove_item = Button(text="-", command=lambda: self.dostuff()).grid(row=7, column=4)
-        self.toggle_item = Button(text="Set packed", command=lambda: self.dostuff()).grid(row=7, column=5)
+        self.packlists_items_box_var = StringVar()
+        self.selected_packlist = StringVar()
+
+        self.name_date = Label(text="Textvariable w name&date goes here").grid(row=4, column=4, columnspan=3)
+        self.toggle_btn = Checkbutton(text="Show only unpacked items", command=lambda: self.dostuff()).grid(row=5, column=4, columnspan=3)
+        self.packlist_items_box = Listbox(listvariable=self.packlists_items_box_var, width=40).grid(row=6, column=4, columnspan=3)
+        self.add_item = Button(text="+", command=lambda: self.dostuff()).grid(row=7, column=4)
+        self.remove_item = Button(text="-", command=lambda: self.dostuff()).grid(row=7, column=5)
+        self.toggle_item = Button(text="Set packed", command=lambda: self.dostuff()).grid(row=7, column=6)
 
 
 class InputBox:
