@@ -13,25 +13,22 @@ class App(Tk):
     def __init__(self):
         super().__init__()
         self.title("Packlist program")
-        self.packlists: List = read_file(SAVE_FILE)
+        self.packlists: List = sort_lists(read_file(SAVE_FILE))
         self.packlists_filtered = self.packlists
         self.protocol("WM_DELETE_WINDOW", self.quit_save)
-
-        # TODO: filtrera vid start, efter ny lista och datumbyte
-        # TODO: filtrera items på lämpliga ställen, t.ex. add och skapande av ny lista
 
         self.lists = ListsView(self)
         self.itemlists = ItemListsView(self)
 
-        self.quit_btn = Button(text="Quit", command=lambda: self.quit_save()).grid(row=7, column=3)
+        self.quit_btn = Button(text="Quit", command=lambda: self.quit_save()).grid(row=7, column=2)
 
-        # TODO: new list, change name and change date
-        # TODO: add function
         # TODO: change global variable stuff(?)
         # TODO: remove stuff that isn't used
         # TODO: comment everything
-        # TODO: recheck requirements and test the shit out of the program
+        # TODO: recheck requirements and test the shit out of the program (remove lists??)
         # TODO: recheck requirements and test the shit out of the other non-gui program
+        # TODO: Ev visa datum först
+        # TODO: Är den filtrerad vid lämpliga ställen, t.ex. add och skapande av ny lista?
 
 
     def quit_save(self):
@@ -43,8 +40,9 @@ class App(Tk):
         search packlist
         :param list lists: list of packlists
         """
-        #self.packlists_filtered = self.packlists   TODO: Vafan gör denna raden här?
+        self.lists.edit_btn['state'] = DISABLED
         searchlist = []
+        print(show_after)
         if show_after:
             if not search:
                 search = datetime.date(1, 1, 1)
@@ -52,11 +50,14 @@ class App(Tk):
                 try:
                     searchdate = datetime.datetime.strptime(search, '%Y-%m-%d')
                     search = searchdate.date()
+                    print("Date is fixed")
                 except ValueError:
                     self.lists.update_packlist_display([])
+                    print("ValueError")
                     return
             for packlist in lists:
-                if packlist.date >= search:
+                #if packlist.date >= search:
+                if (datetime.datetime.strptime(str(packlist.date), '%Y-%m-%d').date()) >= (datetime.datetime.strptime(str(search), '%Y-%m-%d').date()):
                     searchlist.append(packlist)
         else:
             for packlist in lists:
@@ -74,27 +75,33 @@ class ListsView:
         self.packlists_listbox_var = StringVar()
         self.update_packlist_display(self.root.packlists_filtered)
 
-        self.welcome_label = Label(text="Welcome to Packlist program!\n", width=40).grid(row=0, column=0, columnspan=4)
-        self.search_date_label = Label(text="Search from date:", anchor=W, width=36).grid(row=1, column=0, columnspan=4)
-        self.search_date_entry = Entry(textvariable=search_date_entry_var, width=25).grid(row=2, column=0, columnspan=2)
-        self.go_search_date = Button(text="Search", command=lambda: self.root.search_lists(self.root.packlists, search_date_entry_var.get(), show_after=True)).grid(row=2, column=2)
-        self.search_datename_label = Label(text="Search by name or date:", anchor=W, width=36).grid(row=3, column=0, columnspan=4)
-        self.search_datename_entry = Entry(text=search_datename_entry_var, width=25).grid(row=4, column=0, columnspan=2)
-        self.go_search_datename = Button(text="Search", command=lambda: self.root.search_lists(self.root.packlists, search_datename_entry_var.get())).grid(row=4, column=2)
-        self.space = Label(text="", width=40).grid(row=5, column=0, columnspan=4)
+        Label(text="Welcome to Packlist program!\n", width=40).grid(row=0, column=0, columnspan=3)
+        Label(text="Search from date:", anchor=W, width=36).grid(row=1, column=0, columnspan=3)
+        Entry(textvariable=search_date_entry_var, width=25).grid(row=2, column=0, columnspan=2)
+        Button(text="Search", command=lambda: self.root.search_lists(self.root.packlists, search_date_entry_var.get(), show_after=True)).grid(row=2, column=2)
+        Label(text="Search by name or date:", anchor=W, width=36).grid(row=3, column=0, columnspan=3)
+        Entry(text=search_datename_entry_var, width=25).grid(row=4, column=0, columnspan=2)
+        Button(text="Search", command=lambda: self.root.search_lists(self.root.packlists, search_datename_entry_var.get())).grid(row=4, column=2)
+        Label(text="", width=40).grid(row=5, column=0, columnspan=3)
 
-        self.packlist_listbox = Listbox(listvariable=self.packlists_listbox_var, width=40)
-        self.packlist_listbox.grid(row=6, column=0, columnspan=4)
-        self.go_search_date = Button(text="Select list", command=lambda: self.selected_list()).grid(row=7, column=0)
-        self.new_list_btn = Button(text="New list", command=lambda: self.edit_create()).grid(row=7, column=1)
-        self.edit_btn = Button(text="Edit", command=lambda: self.edit_create()).grid(row=7, column=2)
+        self.packlist_listbox = Listbox(listvariable=self.packlists_listbox_var,  exportselection=0, width=40)
+        self.packlist_listbox.bind("<<ListboxSelect>>", lambda e: self.listbox_selection())
+        self.packlist_listbox.grid(row=6, column=0, columnspan=3)
+        Button(text="New list", command=lambda: self.edit_create(new=True)).grid(row=7, column=0)
+        self.edit_btn = Button(text="Edit", command=lambda: self.edit_create(), state=DISABLED)
+        self.edit_btn.grid(row=7, column=1)
 
-    def selected_list(self):
+    def listbox_selection(self):
+        self.edit_btn['state'] = ACTIVE
         index = self.packlist_listbox.curselection()[0]
         self.root.itemlists.update_itemlist_display(self.root.packlists_filtered[index])
 
-    def edit_create(self):
-        InputBox(self.root)
+    def edit_create(self, new=False):
+        if new:
+            selected_list = None
+        else:
+            selected_list = self.root.packlists_filtered[self.packlist_listbox.curselection()[0]]
+        InputBox(self.root, selected_list=selected_list)
 
     def update_packlist_display(self, packlists):
         if not packlists:
@@ -116,6 +123,7 @@ class ItemListsView:
         self.name_date = Label(textvariable=self.namedate_var).grid(row=4, column=4, columnspan=3)
         self.toggle_btn = Checkbutton(text="Show only unpacked items", command=lambda: self.update_itemlist_display(self.selected_packlist), onvalue=True, offvalue=False, variable=self.show_only_unpacked).grid(row=5, column=4, columnspan=3)
         self.packlist_items_box = Listbox(listvariable=self.packlists_items_box_var, width=40)
+        self.packlist_items_box.bind("<<ListboxSelect>>", self.packlist_items_box.curselection())
         self.packlist_items_box.grid(row=6, column=4, columnspan=3)
         self.add_item = Button(text="+", command=lambda: self.add_item_func())
         self.add_item.grid(row=7, column=4)
@@ -124,10 +132,14 @@ class ItemListsView:
         self.toggle_item = Button(text="Set packed", command=lambda: self.toggle_item_func())
         self.toggle_item.grid(row=7, column=6)
 
-    def update_itemlist_display(self, packlist):
+
+    def update_itemlist_display(self, packlist=None):
         if not packlist:
-            return
-        elif not packlist.items:
+            if self.selected_packlist:
+                packlist = self.selected_packlist
+            else:
+                return
+        if not packlist.items:
             self.packlists_items_box_var.set(["No items found!"])
             return
         if self.show_only_unpacked.get():
@@ -140,35 +152,43 @@ class ItemListsView:
         self.selected_packlist = packlist
 
     def add_item_func(self):
-        pass
+        InputBox(self.root, selected_list=self.selected_packlist, new_item=True)
 
     def remove_item_func(self):
-        keylist = []
-        for i in self.selected_packlist.items.keys():
-            keylist.append(i)
-        self.selected_packlist.items.pop(keylist[self.packlist_items_box.curselection()[0]])
+        items = [item for item in self.selected_packlist.items.keys()]
+        self.selected_packlist.items.pop(items[self.packlist_items_box.curselection()[0]])
         self.update_itemlist_display(self.selected_packlist)
 
     def toggle_item_func(self):
-        items_key = [key for key, value in self.selected_packlist.items.items()]
-        items_value = [value for key, value in self.selected_packlist.items.items()]
-        if items_value[self.packlist_items_box.curselection()[0]]:
-            self.selected_packlist.items[items_key[self.packlist_items_box.curselection()[0]]] = False
-        else:
-            self.selected_packlist.items[items_key[self.packlist_items_box.curselection()[0]]] = True
+        items = [key for key, value in self.selected_packlist.items.items()]
+        selected_item = items[self.packlist_items_box.curselection()[0]]
+        self.selected_packlist.items[selected_item] = not self.selected_packlist.items[selected_item]
         self.update_itemlist_display(self.selected_packlist)
 
 
 class InputBox:
-    def __init__(self, root, selected_list=None):
+    def __init__(self, root, selected_list=None, new_item=False):
         self.root = root
         self.selected_list = selected_list
-
         self.popup = Toplevel(root)
-        Label(self.popup, text="New name:").grid()
-        Entry(self.popup).grid()  # something to interact with
-        Label(self.popup, text="New date:").grid()
-        Entry(self.popup).grid()
+        self.new_item = new_item
+        self.item_entry_var = StringVar()
+        self.name_entry_var = StringVar()
+        self.date_entry_var = StringVar()
+        if selected_list:
+            self.name_entry_var.set(selected_list.name)
+            self.date_entry_var.set(selected_list.date)
+
+
+        if self.new_item:
+            Label(self.popup, text="New item:").grid()
+            Entry(self.popup, textvariable=self.item_entry_var).grid()
+
+        else:
+            Label(self.popup, text="New name:").grid()
+            Entry(self.popup, textvariable=self.name_entry_var).grid()
+            Label(self.popup, text="New date:").grid()
+            Entry(self.popup, textvariable=self.date_entry_var).grid()
 
         Button(self.popup, text="Done", command=self.save).grid()
         self.popup.protocol("WM_DELETE_WINDOW", self.dismiss)  # intercept close button
@@ -181,12 +201,19 @@ class InputBox:
         self.popup.grab_release()
         self.popup.destroy()
 
-    def save(self):  # TODO: Gör olika stuffs här, för att lägga till ny och editera befintlig
-        if self.selected_list:
-            print(self.root.packlists) # TODO: För edit
+    def save(self):
+        if self.new_item:
+            self.selected_list.items[self.item_entry_var.get()] = False
         else:
-            print(self.root.packlists)  # TODO: För new
-        # TODO: sort packlists
+            if not self.selected_list:
+                self.root.packlists.append(new_packlist(self.name_entry_var.get(), self.date_entry_var.get())) #TODO: felhantering input, datum!!
+            else:
+                self.selected_list.name = self.name_entry_var.get()
+                self.selected_list.change_date(datetime.datetime.strptime(self.date_entry_var.get(), '%Y-%m-%d').date())
+        self.root.packlists = sort_lists(self.root.packlists)
+        self.root.lists.update_packlist_display(self.root.packlists)
+        self.root.itemlists.update_itemlist_display()
+        self.dismiss()
 
 
 class PackList:
@@ -264,25 +291,14 @@ class PackList:
             else:
                 print(f"{index}:   {item}")
 
-def new_packlist():
+def new_packlist(name, date):
     """
     create new packlist
     :return: packlist created
     """
-    name = input("Name of packlist: ")
     name = name[0].upper() + name[1:]
-    print("Enter date of travel: ")
-    date = None
-    while not date:
-        date = ask_for_date()
+    date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
     packlist = PackList(name, date)
-    while True:
-        item = input(f'To add an item to {name}, please enter item. Otherwise enter "Q": ')
-        if item == "Q":
-            break
-        else:
-            packlist.add_item(item)
-    print(f"{name} added to packlists.")
     return packlist
 
 def sort_lists(lists):
@@ -293,7 +309,7 @@ def sort_lists(lists):
     """
     for packlist in lists:
         packlist.items = dict(sorted(packlist.items.items()))
-    return sorted(lists, key=lambda packlist: packlist.date)
+    return sorted(lists, key=lambda packlist: str(packlist.date))
 
 def ask_for_date():
     """

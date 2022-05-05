@@ -1,0 +1,6 @@
+('Aflurr', 223, 3, 22, {'Duraasdrp': True, 'Huddrrp': False, 'Maauw': False})
+('Mordor', 756, 3, 4, {'Ring': False, 'Bow': True, 'Sword': True, 'Axe': False})
+('Cat Land', 2023, 5, 6, {'MEOW': False, 'PURR': True, 'Catnip': True, 'Tuna': False})
+('Tyskland', 2024, 8, 4, {'Dirndl': False, 'Lederhosen': True, 'Dictionary': True})
+('Möp', 2025, 5, 22, {'AK': False, 'Tält': True, 'Snuskburk': True})
+('Göteborg', 2022, 5, 10, {'Glenn': False, 'Seagull repellent': True})
