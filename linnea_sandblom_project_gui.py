@@ -1,19 +1,19 @@
 # Project, DD100N, Linnéa Sandblom, 2022-05-xx
 # Makes, views and edits packing lists.
 from tkinter import *
+from tkinter import filedialog, messagebox
 import ast
-from tkinter import messagebox
 from typing import List, Tuple, Dict
 import datetime
 
-SAVE_FILE = "lists.txt"
 
 class App(Tk):
 
     def __init__(self):
         super().__init__()
         self.title("Packlist program")
-        self.packlists: List = sort_lists(read_file(SAVE_FILE))
+        self.packlists = []
+        self.filename = ""
         self.packlists_filtered = self.packlists
         self.protocol("WM_DELETE_WINDOW", self.quit_save)
 
@@ -21,18 +21,54 @@ class App(Tk):
         self.itemlists = ItemListsView(self)
 
         self.quit_btn = Button(text="Quit", command=lambda: self.quit_save()).grid(row=7, column=2)
+        self.option_add('*tearOff', FALSE)
+        menubar = Menu(self)
+        self['menu'] = menubar
+        menu_file = Menu(menubar)
+        menubar.add_cascade(menu=menu_file, label='File')
+        menu_file.add_command(label='New file', command=self.new_file)
+        menu_file.add_command(label='Open', command=self.open_file)
 
-        # TODO: change global variable stuff(?)
+        # TODO: Fix exit when no listfile opened yet
+        # TODO: removeable lists?
         # TODO: remove stuff that isn't used
         # TODO: comment everything
         # TODO: recheck requirements and test the shit out of the program (remove lists??)
         # TODO: recheck requirements and test the shit out of the other non-gui program
         # TODO: Ev visa datum först
-        # TODO: Är den filtrerad vid lämpliga ställen, t.ex. add och skapande av ny lista?
+        # TODO: Är filtered_lists filtrerad vid lämpliga ställen, t.ex. add och skapande av ny lista?
 
+    def new_file(self):
+        self.filename = filedialog.asksaveasfilename()
+        self.read_file(self.filename)
+
+    def open_file(self):
+        self.filename = filedialog.askopenfilename()
+        self.read_file(self.filename)
+        self.lists.update_packlist_display(self.packlists)
+
+    def read_file(self, file):
+        """
+        reads packlists from textfile
+        :param str file: name of textfile
+        :return list packlists made from textfile data
+        """
+        packlists = []
+        try:
+            with open(file, "r+", encoding="utf-8") as file:
+                for index, line in enumerate(file):
+                    try:
+                        evaluated_line = ast.literal_eval(line.strip())
+                        name, year, month, day, lists = evaluated_line
+                        packlists.append(PackList(name, datetime.date(year, month, day), lists))
+                    except (SyntaxError, ValueError):
+                        messagebox.showinfo(message=f"Invalid list! Error in line {index + 1}")
+        except FileNotFoundError:
+            pass
+        self.packlists = packlists
 
     def quit_save(self):
-        quit_write_to_file(self.packlists, file=SAVE_FILE)
+        quit_write_to_file(self.packlists, file=self.filename)
         self.destroy()
 
     def search_lists(self, lists, search, show_after=False):
@@ -73,7 +109,6 @@ class ListsView:
         search_date_entry_var = StringVar(value="YYYY-MM-DD")
         search_datename_entry_var = StringVar(value="YYYY-MM-DD or list name")
         self.packlists_listbox_var = StringVar()
-        self.update_packlist_display(self.root.packlists_filtered)
 
         Label(text="Welcome to Packlist program!\n", width=40).grid(row=0, column=0, columnspan=3)
         Label(text="Search from date:", anchor=W, width=36).grid(row=1, column=0, columnspan=3)
@@ -90,6 +125,7 @@ class ListsView:
         Button(text="New list", command=lambda: self.edit_create(new=True)).grid(row=7, column=0)
         self.edit_btn = Button(text="Edit", command=lambda: self.edit_create(), state=DISABLED)
         self.edit_btn.grid(row=7, column=1)
+        self.update_packlist_display(self.root.packlists_filtered)
 
     def listbox_selection(self):
         self.edit_btn['state'] = ACTIVE
@@ -104,10 +140,12 @@ class ListsView:
         InputBox(self.root, selected_list=selected_list)
 
     def update_packlist_display(self, packlists):
+        self.packlist_listbox['state'] = NORMAL
         if not packlists:
-            self.packlists_listbox_var.set(["No lists found or invalid input!"])
+            self.packlist_listbox['state'] = DISABLED
+            self.packlists_listbox_var.set(["No lists found or invalid input!", "Dates must be on format YYYY-MM-DD"])
             return
-        packlists_display = [f"{packlist.name} - {packlist.date}" for packlist in packlists]
+        packlists_display = [f"{packlist.date} - {packlist.name}" for packlist in packlists]
         self.root.packlists_filtered = packlists
         self.packlists_listbox_var.set(packlists_display)
 
@@ -123,14 +161,15 @@ class ItemListsView:
         self.name_date = Label(textvariable=self.namedate_var).grid(row=4, column=4, columnspan=3)
         self.toggle_btn = Checkbutton(text="Show only unpacked items", command=lambda: self.update_itemlist_display(self.selected_packlist), onvalue=True, offvalue=False, variable=self.show_only_unpacked).grid(row=5, column=4, columnspan=3)
         self.packlist_items_box = Listbox(listvariable=self.packlists_items_box_var, width=40)
-        self.packlist_items_box.bind("<<ListboxSelect>>", self.packlist_items_box.curselection())
+        self.packlist_items_box.bind("<<ListboxSelect>>", self.packlist_items_box.curselection()) #Testrad, ta bort?
         self.packlist_items_box.grid(row=6, column=4, columnspan=3)
-        self.add_item = Button(text="+", command=lambda: self.add_item_func())
+        self.add_item = Button(text="+", command=lambda: self.add_item_func(), state=DISABLED)
         self.add_item.grid(row=7, column=4)
-        self.remove_item = Button(text="-", command=lambda: self.remove_item_func())
+        self.remove_item = Button(text="-", command=lambda: self.remove_item_func(), state=DISABLED)
         self.remove_item.grid(row=7, column=5)
-        self.toggle_item = Button(text="Set packed", command=lambda: self.toggle_item_func())
+        self.toggle_item = Button(text="Set packed", command=lambda: self.toggle_item_func(), state=DISABLED)
         self.toggle_item.grid(row=7, column=6)
+        self.buttons = [self.add_item, self.remove_item, self.toggle_item]
 
 
     def update_itemlist_display(self, packlist=None):
@@ -138,10 +177,20 @@ class ItemListsView:
             if self.selected_packlist:
                 packlist = self.selected_packlist
             else:
+                for button in self.buttons:
+                    button['state'] = DISABLED
                 return
+        self.selected_packlist = packlist
         if not packlist.items:
-            self.packlists_items_box_var.set(["No items found!"])
+            self.packlists_items_box_var.set(["No items found!"])   #TODO: Fix error when "No items found!" is deleted or set packed in listbox
+            self.packlist_items_box['state'] = DISABLED
+            self.toggle_item['state'] = DISABLED
+            self.remove_item['state'] = DISABLED
+            self.add_item['state'] = ACTIVE
             return
+        for button in self.buttons:
+            button['state'] = ACTIVE
+        self.packlist_items_box['state'] = NORMAL
         if self.show_only_unpacked.get():
             items_display = [f"{'    '}  {key}" for key, value in packlist.items.items() if not value]
         else:
@@ -149,21 +198,26 @@ class ItemListsView:
         self.packlists_items_box_var.set(items_display)
         namedate_display = (f"{packlist.name} - {packlist.date}")
         self.namedate_var.set(namedate_display)
-        self.selected_packlist = packlist
 
     def add_item_func(self):
         InputBox(self.root, selected_list=self.selected_packlist, new_item=True)
 
     def remove_item_func(self):
         items = [item for item in self.selected_packlist.items.keys()]
-        self.selected_packlist.items.pop(items[self.packlist_items_box.curselection()[0]])
-        self.update_itemlist_display(self.selected_packlist)
+        try:
+            self.selected_packlist.items.pop(items[self.packlist_items_box.curselection()[0]])
+            self.update_itemlist_display(self.selected_packlist)
+        except IndexError:
+            pass
 
     def toggle_item_func(self):
         items = [key for key, value in self.selected_packlist.items.items()]
-        selected_item = items[self.packlist_items_box.curselection()[0]]
-        self.selected_packlist.items[selected_item] = not self.selected_packlist.items[selected_item]
-        self.update_itemlist_display(self.selected_packlist)
+        try:
+            selected_item = items[self.packlist_items_box.curselection()[0]]
+            self.selected_packlist.items[selected_item] = not self.selected_packlist.items[selected_item]
+            self.update_itemlist_display(self.selected_packlist)
+        except IndexError:
+            pass
 
 
 class InputBox:
@@ -330,27 +384,9 @@ def ask_for_date():
         except ValueError:
             print("Non-valid date, try again!")
 
-def read_file(file=SAVE_FILE):
-    """
-    reads packlists from textfile
-    :param str file: name of textfile
-    :return list packlists made from textfile data
-    """
-    packlists = []
-    try:
-        with open(file, "r+", encoding="utf-8") as file:
-            for index, line in enumerate(file):
-                try:
-                    evaluated_line = ast.literal_eval(line.strip())
-                    name, year, month, day, lists = evaluated_line
-                    packlists.append(PackList(name, datetime.date(year, month, day), lists))
-                except (SyntaxError, ValueError):
-                    messagebox.showinfo(message=f"Invalid list! Error in line {index+1}")
-    except FileNotFoundError:
-        print(f"File not found. New file {file} will be created for your lists")
-    return packlists
 
-def quit_write_to_file(lists, file=SAVE_FILE):
+
+def quit_write_to_file(lists, file):
     """
     writes packlists to text file and quits program
     :param str file: name of textfile
