@@ -1,12 +1,18 @@
-# Project, DD100N, Linnéa Sandblom, 2022-05-xx
+# Project, DD100N, Linnéa Sandblom, 2022-05-09
+# This is the version of the program WITHOUT GUI.
 # Makes, views and edits packing lists.
 import ast
-from typing import List, Tuple, Dict
+from typing import List, Dict
 import datetime
 
 SAVE_FILE = "lists.txt"
 
 class PackList:
+    """
+    Class that constructs object containing packlists.
+    The data structure of each list in a PackList object consists of a str name, a datetime.date date and a dict of items.
+    Each item is a dict entry that consists of a str name of the item and a bool that states if the item is packed or not.
+    """
     def __init__(self, name: str, date: datetime.date, items: Dict[str, bool] = None):
         """
         constructor of PackList
@@ -24,6 +30,8 @@ class PackList:
         :param str name: name of item to be added to PackList
         :param bool packed: true if item is packed when added, else false
         """
+        while not name:
+            name = input("Input name of item:  ")
         name = name[0].upper() + name[1:]
         self.items[name] = packed
         self.items = dict(sorted(self.items.items()))
@@ -87,7 +95,9 @@ def new_packlist():
     create new packlist
     :return: packlist created
     """
-    name = input("Name of packlist: ")
+    name = ""
+    while not name:
+        name = input("Name of packlist: ")
     name = name[0].upper() + name[1:]
     print("Enter date of travel: ")
     date = None
